@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ตรวจสอบประเภทการผ่าตัด — Day Surgery / Minor Surgery / OPD</title>
+<style>
+:root{
+  --ink:#26261F;--muted:#6B6A60;--line:#D9D6CC;--line2:#E7E4DA;
+  --paper:#FFFFFF;--bg:#EDEAE2;
+  --teal:#0F6E56;--tealbg:#E1F5EE;--teal2:#0A5040;
+  --blue:#185FA5;--bluebg:#E6F1FB;--blue2:#0F4A84;
+  --slate:#475467;--slatebg:#EEF1F4;--slate2:#33415C;
+  --amber:#9A5B0A;--amberbg:#FAEEDA;--amber2:#EF9F27;
+  --red:#B3261E;--redbg:#FDECEA;
+  --r:12px;--r-lg:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);
+  font-family:"Noto Sans Thai","Sarabun",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  line-height:1.6;-webkit-font-smoothing:antialiased;padding:32px 20px 64px}
+.page{max-width:760px;margin:0 auto}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);font-weight:600;margin-bottom:8px}
+h1{font-size:27px;line-height:1.2;letter-spacing:-.01em;margin-bottom:6px}
+.sub{font-size:14.5px;color:var(--muted);margin-bottom:8px;max-width:60ch}
+.stamp{font-size:11.5px;color:var(--muted);margin-bottom:18px}
+.stamp b{color:var(--ink)}
+
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-bottom:18px;padding:12px 15px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);font-size:12px;color:var(--muted)}
+.legend .li{display:inline-flex;align-items:center;gap:6px}
+.legend .sw{width:11px;height:11px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.08)}
+.legend .opdnote{flex-basis:100%;font-size:11.5px;color:var(--amber);margin-top:2px}
+
+.search-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);padding:22px;box-shadow:0 1px 2px rgba(40,40,30,.04),0 8px 24px rgba(40,40,30,.05)}
+.search-wrap{position:relative}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:17px;pointer-events:none;line-height:1}
+#q{width:100%;padding:13px 14px 13px 44px;border:1.5px solid var(--line);border-radius:var(--r);font-family:inherit;font-size:15px;color:var(--ink);background:var(--bg);transition:border-color .12s,background .12s;outline:none}
+#q:focus{border-color:var(--teal);background:var(--paper)}
+#q::placeholder{color:#A8A69D}
+.hint{margin-top:14px;padding:11px 14px;background:var(--bg);border-radius:10px;font-size:13px;color:var(--muted);line-height:1.7}
+.hint b{color:var(--ink)}
+code{background:var(--line2);padding:1px 5px;border-radius:4px;font-size:12px;font-family:inherit}
+
+.rescount{font-size:12px;color:var(--muted);margin:16px 0 10px}
+.approx-warn{display:flex;gap:10px;align-items:flex-start;background:var(--amberbg);border:1px solid var(--amber2);border-radius:var(--r);padding:12px 14px;margin:16px 0 4px;font-size:13px;color:var(--amber);line-height:1.6}
+.approx-warn .aw-icon{font-size:16px;line-height:1.4;flex-shrink:0}
+.approx-warn b{color:#6E4708}
+.item{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:9px;transition:border-color .1s}
+.item:hover{border-color:#C4C0B4}
+.item.sub{margin-left:14px;border-left:3px solid var(--line2)}
+.name-th{font-size:15px;font-weight:600;line-height:1.4;margin-bottom:2px}
+.name-meta{font-size:12.5px;color:var(--muted);line-height:1.4}
+
+/* comparative coverage grid */
+.cov{margin-top:12px;border-top:1px solid var(--line2);padding-top:11px;
+  display:grid;grid-template-columns:auto 1fr;gap:7px 16px;align-items:baseline}
+.cov-k{font-size:12px;color:var(--muted);white-space:nowrap}
+.cov-v{font-size:14px;font-weight:700;line-height:1.35}
+.v-daycase{color:var(--slate2)}
+.v-day5{color:var(--teal2)}
+.v-minor13{color:var(--blue2)}
+.v-opd{color:var(--amber)}
+.cov-sub{font-weight:500;font-size:12px;color:var(--muted)}
+
+.internal-note{font-size:11.5px;color:var(--amber);background:var(--amberbg);border:1px solid var(--amber2);padding:5px 10px;border-radius:6px;margin-top:10px;display:inline-flex;align-items:center;gap:5px}
+mark{background:#FDE98A;color:inherit;border-radius:3px;padding:0 1px}
+
+.no-results{margin-top:16px;text-align:center;padding:28px 20px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg)}
+.no-icon{font-size:30px;margin-bottom:10px}
+.no-results h3{font-size:16px;font-weight:600;margin-bottom:6px}
+.no-results p{font-size:13.5px;color:var(--muted);margin-bottom:16px}
+.esc{font-size:12.5px;color:var(--muted);background:var(--bg);border-radius:10px;padding:11px 14px;text-align:left;line-height:1.7;display:inline-block}
+
+.foot{margin-top:30px;font-size:12px;color:var(--muted);line-height:1.8;border-top:1px solid var(--line2);padding-top:16px}
+@media(max-width:520px){body{padding:20px 14px 48px}h1{font-size:21px}.search-card{padding:16px}.item.sub{margin-left:8px}}
+</style>
+</head>
+<body>
+<div class="page">
+  <p class="eyebrow">โมดูลเสริม · Smart Script Procedure</p>
+  <h1>ตรวจสอบประเภทการผ่าตัด</h1>
+  <p class="sub">พิมพ์ชื่อโรค/หัตถการที่ลูกค้าปรึกษา ระบบจะบอกการจำแนกทั้งกรมธรรม์เก่าและใหม่ในผลลัพธ์เดียว</p>
+  <p class="stamp">อ้างอิง: คำสั่งนายทะเบียนที่ 14/2564 และ 15/2564 · <b>ปรับปรุงข้อมูล: <span id="datestamp">—</span></b></p>
+
+  <div class="legend">
+    <span class="li"><i class="sw" style="background:var(--slatebg);border-color:var(--slate)"></i>Day Case (เก่า)</span>
+    <span class="li"><i class="sw" style="background:var(--tealbg);border-color:var(--teal)"></i>Day Surgery · หมวด 5 (ใหม่)</span>
+    <span class="li"><i class="sw" style="background:var(--bluebg);border-color:var(--blue)"></i>ผ่าตัดเล็ก · หมวด 13 (ใหม่)</span>
+    <span class="li"><i class="sw" style="background:var(--amberbg);border-color:var(--amber2)"></i>OPD</span>
+    <span class="opdnote">OPD = เบิกแบบผู้ป่วยนอก (ไม่นับเป็นการผ่าตัด Day Surgery / ผ่าตัดเล็ก)</span>
+  </div>
+
+  <div class="search-card">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="q" placeholder="พิมพ์ชื่อโรค/หัตถการ/คำย่อ — ไทยหรืออังกฤษ..." autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <div id="results">
+      <div class="hint"><b>ตัวอย่างค้นหา:</b> <code>ESWL</code> · <code>ต้อกระจก</code> · <code>ริดสีดวง</code> · <code>endoscope</code> · <code>biopsy</code> (พิมพ์ชื่อกลุ่มเพื่อดูชนิดย่อยทั้งหมด)</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <b>หมายเหตุ:</b> ค้นจากตารางจำแนกหัตถการที่ทีมสินไหมตรวจสอบแล้ว · พิมพ์ชื่อกลุ่ม เช่น “endoscope” หรือ “biopsy” เพื่อดูชนิดย่อยทั้งหมด ·
+    แถบสีเหลืองคือหมายเหตุภายในของทีม <b>ห้ามแจ้งลูกค้า</b> · หากไม่พบหรือไม่แน่ใจ ให้ส่งเรื่องทีมสินไหมพิจารณา
+  </div>
+</div>
+
+<script>
+const ROWS=[
+{n:"1",en:"ESWL : Extracorporeal Shock Wave Lithotripsy",th:"การสลายนิ่วด้วยคลื่นกระแทก",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"2",en:"Coronary Angiogram / Cardiac Catheterization",th:"การตรวจสวนหลอดเลือดหัวใจโดยการฉีดสี",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"3",en:"Extra Capsular Cataract Extraction with Intra Ocular Lens",th:"การผ่าตัดต้อกระจกร่วมกับการใส่แก้วตาเทียม",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"4",en:"Laparoscopy or Laparoscopic surgery",th:"การตรวจหรือผ่าตัดในช่องท้องโดยการส่องกล้อง",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"5",en:"Endoscope ทุกชนิด (เลือกชนิดด้านล่าง 5.1-5.20)",th:"การตรวจโดยการส่องกล้องทุกชนิด",old:"",nw:"",note:"แยกชนิดย่อย 5.1-5.20 แต่ละชนิดมีหมวดต่างกัน",header:1,parent:null},
+{n:"6",en:"Sinus Operation (เลือกชนิดด้านล่าง 6.1-6.3)",th:"การผ่าตัดหรือเจาะไซนัส",old:"",nw:"",note:"แยกชนิดย่อย 6.1-6.3 แต่ละชนิดมีหมวดต่างกัน",header:1,parent:null},
+{n:"7",en:"Injection or rubber band ligation",th:"การรักษาริดสีดวงทวารโดยการฉีดยาหรือผูกด้วยยาง",old:"daycase",nw:"minor13",note:"เปลี่ยนหมวด: เดิม=Day → ใหม่=ผ่าตัดเล็ก",header:0,parent:null},
+{n:"8",en:"Excision Breast mass",th:"การตัดก้อนเนื้อที่เต้านม",old:"",nw:"",note:"แยกชนิดย่อย 8.1-8.3 แต่ละชนิดมีหมวดต่างกัน",header:1,parent:null},
+{n:"8.1",en:"With localized anaesthesia",th:"การตัดก้อนเนื้อที่เต้านมด้วยการฉีดยาชาเฉพาะที่",old:"daycase",nw:"minor13",note:"",header:0,parent:"8"},
+{n:"8.2",en:"Core Biopsy",th:"การเจาะก้อนเนื้อที่เต้านมด้วยเข็มขนาดใหญ่เพื่อตรวจพิสูจน์เนื้อเยื่อ",old:"daycase",nw:"minor13",note:"",header:0,parent:"8"},
+{n:"8.3",en:"Needle Biopsy",th:"การเจาะก้อนเนื้อที่เต้านมด้วยเข็มขนาดเล็กเพื่อตรวจพิสูจน์เซลล์",old:"daycase",nw:"minor13",note:"",header:0,parent:"8"},
+{n:"9",en:"Bone Biopsy",th:"การตัดชิ้นเนื้อจากกระดูก",old:"",nw:"",note:"แยกชนิดย่อย 9.1-9.2 แต่ละชนิดมีหมวดต่างกัน",header:1,parent:null},
+{n:"9.1",en:"Bone Biopsy with moderate-deep sedation",th:"การตัดชิ้นเนื้อจากกระดูกโดยมีการให้ยาสงบประสาทในระดับกลาง-ลึก",old:"daycase",nw:"day5",note:"",header:0,parent:"9"},
+{n:"9.2",en:"Bone Biopsy without /mild sedation",th:"การตัดชิ้นเนื้อจากกระดูกโดยไม่มีการให้ยาสงบประสาทหรือให้ในระดับต่ำ",old:"daycase",nw:"minor13",note:"",header:0,parent:"9"},
+{n:"10",en:"Tissue Biopsy (เลือกชนิดด้านล่าง 10.1-10.4)",th:"การตัดชิ้นเนื้อเพื่อการวินิจฉัยจากอวัยวะใดๆ",old:"",nw:"",note:"แยกชนิดย่อย 10.1-10.4",header:1,parent:null},
+{n:"11",en:"Amputation นิ้วมือหรือนิ้วเท้า",th:"การตัดนิ้วมือหรือนิ้วเท้า",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"12",en:"Manual Reduction",th:"การจัดกระดูกให้เข้าที่",old:"",nw:"",note:"แยกชนิดย่อย 12.1-12.2",header:1,parent:null},
+{n:"12.1",en:"Manual Reduction with anaesthesis",th:"การจัดกระดูกให้เข้าที่ แบบวางยาสลบ",old:"daycase",nw:"day5",note:"",header:0,parent:"12"},
+{n:"12.2",en:"Manual Reduction without anaesthesis",th:"การจัดกระดูกให้เข้าที่ แบบไม่มีวางยาสลบ",old:"daycase",nw:"minor13",note:"",header:0,parent:"12"},
+{n:"13",en:"Liver Puncture / Liver Aspiration",th:"การเจาะตับ",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"14",en:"Bone Marrow Aspiration",th:"การเจาะไขกระดูก",old:"",nw:"",note:"แยกชนิดย่อย 14.1-14.2",header:1,parent:null},
+{n:"14.1",en:"Bone Marrow Aspiration with moderate-deep sedation",th:"การเจาะไขกระดูกโดยมีการให้ยาสงบประสาทในระดับกลาง-ลึก",old:"daycase",nw:"day5",note:"",header:0,parent:"14"},
+{n:"14.2",en:"Bone Marrow Aspiration without /mild sedation",th:"การเจาะไขกระดูกโดยไม่มีการให้ยาสงบประสาทหรือให้ในระดับต่ำ",old:"daycase",nw:"minor13",note:"",header:0,parent:"14"},
+{n:"15",en:"Lumbar Puncture",th:"การเจาะช่องเยื่อหุ้มไขสันหลัง",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"16",en:"Thoracentesis / Pleurocentesis / Thoracic Aspiration / Thoracic Paracentesis",th:"การเจาะช่องเยื่อหุ้มปอด",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"17",en:"Abdominal Paracentesis / Abdominal Tapping",th:"การเจาะช่องเยื่อบุช่องท้อง",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"18",en:"Colposcope with tissue biopsy",th:"การตรวจด้วยกล้องขยายทางช่องคลอด และตัดชิ้นเนื้อ",old:"daycase",nw:"minor13",note:"",header:0,parent:null},
+{n:"19",en:"Marsupiarization of Bartholin's cyst",th:"การรักษา Bartholin's cyst ด้วยการผ่าระบายโพรง",old:"daycase",nw:"minor13",note:"",header:0,parent:null},
+{n:"20",en:"Gamma knife",th:"การรักษาโรคด้วยรังสีแกมม่า",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"21",en:"curettage, dilatation&curettage, Fractional curretage",th:"การขูดมดลูก / การถ่างขยายปากมดลูกและขูดมดลูก / การขูดมดลูกแบบแยกส่วน",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"22",en:"Intrathecal steroid injection",th:"การฉีดยาสเตียรอยด์เข้าช่องไขสันหลัง",old:"opd",nw:"day5",note:"เพิ่มใหม่ในกรมธรรม์ 2564 (ไม่มีในเดิม)",header:0,parent:null},
+{n:"23",en:"Retinal detachment treatment",th:"การผ่าตัดรักษาจอประสาทตาหลุดลอก",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"23.1",en:"Retinal treatment exclude Retinal detachment",th:"การผ่าตัดรักษาจอประสาทตา ที่ไม่ใช่จอประสาทตาหลุดลอก",old:"opd",nw:"opd",note:"",header:0,parent:"23"},
+{n:"24",en:"Fistulectomy",th:"การผ่าฝีคัณฑสูตร",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"25",en:"Internal Hemorrhoidectomy",th:"การผ่าตัดริดสีดวงทวารชนิดภายใน",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"26",en:"Burr hole",th:"การเจาะกะโหลกศีรษะเพื่อระบายเลือดออก",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"27",en:"Micro-Invasive Glaucoma Surgery",th:"การผ่าตัดต้อหินแผลเล็ก",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"28",en:"Glaucoma laser",th:"การผ่าตัดต้อหินโดยใช้ Laser",old:"opd",nw:"minor13",note:"",header:0,parent:null},
+{n:"29",en:"varicose vein (phlebectomy)",th:"การผ่าตัดเลาะเอาเส้นเลือดขอดออก",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"30",en:"Retrograde angiogram",th:"การตรวจวินิจฉัยหลอดเลือดด้วยการฉีดสี",old:"opd",nw:"day5",note:"",header:0,parent:null},
+{n:"31",en:"Hernia / hydrocele / varicocele",th:"การผ่าตัดรักษา ไส้เลื่อน ถุงน้ำในอัณฑะ และหลอดเลือดดำขอดที่อัณฑะ",old:"daycase",nw:"day5",note:"",header:0,parent:null},
+{n:"32",en:"Pterygium excision",th:"การผ่าตัดต้อเนื้อ",old:"opd",nw:"minor13",note:"",header:0,parent:null},
+{n:"33",en:"Varicose Vein (Radio frequency Ablation)",th:"การรักษาเส้นเลือดขอดด้วยคลื่นความถี่วิทยุ",old:"opd",nw:"minor13",note:"",header:0,parent:null},
+{n:"34",en:"varicose vein (MOCA)",th:"การรักษาเส้นเลือดขอดด้วยการใช้สายสวนระบบปั่น",old:"opd",nw:"minor13",note:"",header:0,parent:null},
+{n:"5.1",en:"Rhinoscope",th:"การส่องกล้องตรวจจมูก",old:"opd",nw:"opd",note:"",header:0,parent:"5"},
+{n:"5.2",en:"Otoscope",th:"การส่องกล้องตรวจหู",old:"opd",nw:"opd",note:"",header:0,parent:"5"},
+{n:"5.3",en:"Gastroscope",th:"การส่องกล้องตรวจกระเพาะอาหาร",old:"daycase",nw:"day5",note:"",header:0,parent:"5"},
+{n:"5.4",en:"Colonoscope",th:"การส่องกล้องตรวจลำไส้ใหญ่",old:"daycase",nw:"day5",note:"",header:0,parent:"5"},
+{n:"5.5",en:"Gastrocolonoscope",th:"การส่องกล้องตรวจทางเดินอาหาร กระเพาะอาหารและลำไส้ใหญ่",old:"daycase",nw:"day5",note:"",header:0,parent:"5"},
+{n:"5.6",en:"sinuscope",th:"การส่องกล้องตรวจไซนัสจมูก",old:"opd",nw:"minor13",note:"",header:0,parent:"5"},
+{n:"5.7",en:"laryngoscope",th:"การส่องกล้องตรวจกล่องเสียง",old:"opd",nw:"opd",note:"",header:0,parent:"5"},
+{n:"5.8",en:"Joint Endoscope",th:"การส่องกล้องตรวจข้อต่อ",old:"opd",nw:"day5",note:"",header:0,parent:"5"},
+{n:"5.9",en:"Endoscopic joint surgery",th:"การผ่าตัดข้อต่อโดยวิธีส่องกล้อง",old:"daycase",nw:"day5",note:"",header:0,parent:"5"},
+{n:"5.10",en:"capsule gastrocolonoscopy",th:"การตรวจทางเดินอาหารโดยการกลืนกล้องแคปซูล",old:"opd",nw:"opd",note:"",header:0,parent:"5"},
+{n:"5.11",en:"cystoscope",th:"การส่องกล้องตรวจกระเพาะปัสสาวะ",old:"opd",nw:"minor13",note:"",header:0,parent:"5"},
+{n:"5.12",en:"nasopharyngoscope",th:"การส่องกล้องตรวจโพรงจมูก",old:"opd",nw:"opd",note:"",header:0,parent:"5"},
+{n:"5.13",en:"bronchoscope",th:"การส่องกล้องตรวจหลอดลม",old:"opd",nw:"day5",note:"",header:0,parent:"5"},
+{n:"5.14",en:"sigmoidoscope",th:"การส่องกล้องตรวจลำไส้ใหญ่ส่วนปลายและทวารหนัก",old:"opd",nw:"minor13",note:"",header:0,parent:"5"},
+{n:"5.15",en:"proctoscope",th:"การส่องกล้องตรวจทวารหนัก",old:"opd",nw:"opd",note:"",header:0,parent:"5"},
+{n:"5.16",en:"hysteroscope",th:"การส่องกล้องตรวจโพรงมดลูก",old:"opd",nw:"minor13",note:"",header:0,parent:"5"},
+{n:"5.17",en:"esophagoscope",th:"การส่องกล้องตรวจหลอดอาหาร",old:"daycase",nw:"day5",note:"",header:0,parent:"5"},
+{n:"5.18",en:"PCNL (Percutaneous Nephrolithotomy)",th:"การผ่าตัดนิ่วในไตด้วยวิธีส่องกล้องโดยเจาะผ่านผิวหนัง",old:"daycase",nw:"day5",note:"",header:0,parent:"5"},
+{n:"5.19",en:"URSL (Ureteroscopic lithotripsy)",th:"การผ่าตัดขบนิ่วในท่อไตโดยวิธีส่องกล้อง",old:"daycase",nw:"day5",note:"",header:0,parent:"5"},
+{n:"5.20",en:"ERCP (Endoscopic retrograde cholangiopancreatography)",th:"การส่องกล้องตรวจทางเดินน้ำดีและท่อตับอ่อน",old:"daycase",nw:"day5",note:"",header:0,parent:"5"},
+{n:"6.1",en:"Sinus Aspiration",th:"การเจาะดูดของเหลวหรือหนองในไซนัส",old:"opd",nw:"minor13",note:"",header:0,parent:"6"},
+{n:"6.2",en:"Sinuscope (อ้างถึง 5.6)",th:"การส่องกล้องตรวจไซนัสจมูก",old:"opd",nw:"minor13",note:"อ้างอิงข้อ 5.6 (หมายเหตุภายใน)",header:0,parent:"6"},
+{n:"6.3",en:"Transnasal Endoscopic Surgery",th:"การผ่าตัดผ่านทางช่องจมูกโดยวิธีส่องกล้อง",old:"daycase",nw:"day5",note:"",header:0,parent:"6"},
+{n:"10.1",en:"Tissue biopsy - Abdominal /Pelvic organ",th:"การตัดชิ้นเนื้ออวัยวะในช่องท้องจากหน้าท้อง หรืออวัยวะภายในอุ้งเชิงกราน",old:"daycase",nw:"day5",note:"",header:0,parent:"10"},
+{n:"10.2",en:"Hysteroscopy with biopsy",th:"การตัดชิ้นเนื้อจากโพรงมดลูกโดยการส่องกล้อง",old:"daycase",nw:"day5",note:"",header:0,parent:"10"},
+{n:"10.3",en:"Ureteroscopic Biopsy",th:"การตัดชิ้นเนื้อจากท่อไตโดยวิธีส่องกล้อง",old:"daycase",nw:"day5",note:"",header:0,parent:"10"},
+{n:"10.4",en:"Skin Biopsy",th:"การตัดชิ้นเนื้อจากผิวหนัง",old:"opd",nw:"minor13",note:"",header:0,parent:"10"}
+];
+
+const CHILDREN={}; ROWS.forEach(r=>{ if(r.parent){(CHILDREN[r.parent]=CHILDREN[r.parent]||[]).push(r);}});
+
+function noSpace(s){return s.replace(/\s+/g,'');}
+function isSubseq(q,h){let i=0;for(let j=0;j<h.length&&i<q.length;j++){if(h[j]===q[i])i++;}return i===q.length;}
+function bigrams(s){const b=new Set();for(let i=0;i<s.length-1;i++)b.add(s.slice(i,i+2));return b;}
+function containment(qb,hb){if(!qb.size)return 0;let c=0;qb.forEach(x=>{if(hb.has(x))c++;});return c/qb.size;}
+function score(r,q){
+  q=(q||'').toLowerCase().trim();
+  if(q.length<2) return 0;
+  const th=r.th.toLowerCase(), en=r.en.toLowerCase(), hay=th+' '+en;
+  // exact / prefix / substring
+  if(th===q||en===q) return 100;
+  if(th.startsWith(q)||en.startsWith(q)) return 88;
+  if(hay.includes(q)) return 74;
+  // all space-separated tokens present (any order)
+  const toks=q.split(/[\s\-\/]+/).filter(w=>w.length>=2);
+  if(toks.length>1 && toks.every(w=>hay.includes(w))) return 64;
+  // fuzzy: subsequence + bigram containment on space-stripped text (handles "ส่องมดลูก")
+  const qn=noSpace(q), hn=noSpace(hay);
+  let fuzzy=0;
+  if(qn.length>=3 && isSubseq(qn,hn)) fuzzy=52;
+  const cont=containment(bigrams(qn),bigrams(hn));
+  if(qn.length>=3 && cont>=0.7) fuzzy=Math.max(fuzzy,Math.round(30+cont*22));
+  return fuzzy;
+}
+function runSearch(query){
+  const q=query.toLowerCase().trim();
+  if(!q||q.length<2) return null;
+  const picked=new Map();
+  ROWS.forEach((r,idx)=>{
+    const sc=score(r,q);
+    if(sc>0){
+      if(r.header){ (CHILDREN[r.n]||[]).forEach(ch=>{
+        const p=picked.get(ch.n); const cidx=ROWS.indexOf(ch);
+        if(!p||p.sc<sc) picked.set(ch.n,{r:ch,sc:sc-1,idx:cidx});
+      });}
+      else{ const p=picked.get(r.n); if(!p||p.sc<sc) picked.set(r.n,{r,sc,idx}); }
+    }
+  });
+  return [...picked.values()].sort((a,b)=> b.sc-a.sc || a.idx-b.idx);
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function hl(text,q){
+  if(!q||q.length<2) return esc(text);
+  const i=text.toLowerCase().indexOf(q.toLowerCase());
+  if(i<0) return esc(text);
+  return esc(text.slice(0,i))+'<mark>'+esc(text.slice(i,i+q.length))+'</mark>'+esc(text.slice(i+q.length));
+}
+
+function oldDisplay(v){
+  if(v==='daycase') return {cls:'v-daycase',label:'Day Case'};
+  if(v==='opd')     return {cls:'v-opd',label:'OPD'};
+  return {cls:'cov-sub',label:'—'};
+}
+function newDisplay(v){
+  if(v==='day5')    return {cls:'v-day5',label:'Day Surgery <span class="cov-sub">(หมวด 5)</span>'};
+  if(v==='minor13') return {cls:'v-minor13',label:'ผ่าตัดเล็ก <span class="cov-sub">(หมวด 13)</span>'};
+  if(v==='opd')     return {cls:'v-opd',label:'OPD <span class="cov-sub">· ไม่นับเป็น Day/ผ่าตัดเล็ก</span>'};
+  return {cls:'cov-sub',label:'—'};
+}
+
+function renderItem(r,q){
+  const o=oldDisplay(r.old), n=newDisplay(r.nw);
+  const note=r.note?`<div class="internal-note">⚠ หมายเหตุภายใน (ห้ามแจ้งลูกค้า): ${esc(r.note)}</div>`:'';
+  return `<div class="item${r.parent?' sub':''}">
+    <div class="name-th">${hl(r.th,q)}</div>
+    <div class="name-meta">${hl(r.en,q)}${r.en?' · ':''}ลำดับ ${esc(r.n)}</div>
+    <div class="cov">
+      <div class="cov-k">กรมธรรม์เก่า</div><div class="cov-v ${o.cls}">${o.label}</div>
+      <div class="cov-k">กรมธรรม์ใหม่</div><div class="cov-v ${n.cls}">${n.label}</div>
+    </div>
+    ${note}
+  </div>`;
+}
+
+function renderResults(query){
+  const el=document.getElementById('results');
+  const res=runSearch(query);
+  if(!res){
+    el.innerHTML=`<div class="hint"><b>ตัวอย่างค้นหา:</b> <code>ESWL</code> · <code>ต้อกระจก</code> · <code>ริดสีดวง</code> · <code>endoscope</code> · <code>biopsy</code></div>`;
+    return;
+  }
+  if(!res.length){
+    el.innerHTML=`
+      <div class="no-results">
+        <div class="no-icon">🔎</div>
+        <h3>ไม่พบในตารางจำแนกหัตถการ</h3>
+        <p>ไม่มีรายการตรงกับ "<b>${esc(query)}</b>"</p>
+        <div class="esc">• ลองคำอื่น คำย่อ หรือชื่อกลุ่ม (เช่น endoscope, biopsy)<br>• ลองสลับไทย/อังกฤษ<br>• หากยังไม่พบ กรุณาส่งเรื่องให้ทีมสินไหมพิจารณา</div>
+      </div>`;
+    return;
+  }
+  const CONFIDENT=64; // exact/prefix/substring/all-tokens >= 64 ; fuzzy <= 52
+  const warn = res[0].sc < CONFIDENT
+    ? `<div class="approx-warn"><span class="aw-icon">⚠</span><div>ไม่พบรายการที่ตรงกับคำค้นหาโดยตรง ระบบจึงแสดง<b>เฉพาะรายการที่ใกล้เคียง</b> กรุณาตรวจสอบว่ามีรายการใดตรงกับสิ่งที่ต้องการค้นหาหรือไม่ ก่อนนำข้อมูลไปแจ้งลูกค้า</div></div>`
+    : '';
+  el.innerHTML=warn+`<div class="rescount">พบ ${res.length} รายการ</div>`+res.map(x=>renderItem(x.r,query)).join('');
+}
+
+let timer;
+document.getElementById('q').addEventListener('input',function(){
+  clearTimeout(timer); timer=setTimeout(()=>renderResults(this.value),170);
+});
+document.getElementById('datestamp').textContent='18 มิ.ย. 2569';
+
+</script>
+</body>
+</html>
