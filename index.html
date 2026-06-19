@@ -173,7 +173,14 @@ const ROWS=[
 {n:"10.1",en:"Tissue biopsy - Abdominal /Pelvic organ",th:"การตัดชิ้นเนื้ออวัยวะในช่องท้องจากหน้าท้อง หรืออวัยวะภายในอุ้งเชิงกราน",old:"daycase",nw:"day5",note:"",header:0,parent:"10"},
 {n:"10.2",en:"Hysteroscopy with biopsy",th:"การตัดชิ้นเนื้อจากโพรงมดลูกโดยการส่องกล้อง",old:"daycase",nw:"day5",note:"",header:0,parent:"10"},
 {n:"10.3",en:"Ureteroscopic Biopsy",th:"การตัดชิ้นเนื้อจากท่อไตโดยวิธีส่องกล้อง",old:"daycase",nw:"day5",note:"",header:0,parent:"10"},
-{n:"10.4",en:"Skin Biopsy",th:"การตัดชิ้นเนื้อจากผิวหนัง",old:"opd",nw:"minor13",note:"",header:0,parent:"10"}
+{n:"10.4",en:"Skin Biopsy",th:"การตัดชิ้นเนื้อจากผิวหนัง",old:"opd",nw:"minor13",note:"",header:0,parent:"10"},
+{n:"35",en:"Incision and Drainage (I&D)",th:"ผ่าฝี",old:"opd",nw:"opd",note:"",header:0,parent:null},
+{n:"36",en:"Incision and Curettage (I&C)",th:"กรีดระบายหนองตากุ้งยิง",old:"opd",nw:"opd",note:"",header:0,parent:null},
+{n:"37",en:"CT Scan",th:"CT Scan ทุกกรณี",old:"opd",nw:"opd",note:"",header:0,parent:null},
+{n:"38",en:"MRI Scan",th:"MRI Scan ทุกกรณี",old:"opd",nw:"opd",note:"",header:0,parent:null},
+{n:"39",en:"Nail Extraction",th:"ถอดเล็บ",old:"opd",nw:"opd",note:"",header:0,parent:null},
+{n:"40",en:"Physical Therapy",th:"กายภาพบำบัด",old:"opd",nw:"opd",note:"",header:0,parent:null},
+{n:"41",en:"Excision without Biopsy",th:"การตัดชิ้นเนื้อที่ไม่ได้ส่งตรวจ",old:"opd",nw:"opd",note:"",header:0,parent:null}
 ];
 
 const CHILDREN={}; ROWS.forEach(r=>{ if(r.parent){(CHILDREN[r.parent]=CHILDREN[r.parent]||[]).push(r);}});
